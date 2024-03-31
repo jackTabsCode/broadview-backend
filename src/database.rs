@@ -1,5 +1,4 @@
 use mongodb::{bson::doc, options::ClientOptions, Collection};
-use rocket::futures::StreamExt;
 
 use crate::models::Ban;
 
@@ -21,15 +20,15 @@ impl Database {
 
         Self { bans: col }
     }
-    pub async fn get_all_bans(&self) -> Vec<Ban> {
-        self.bans
-            .find(None, None)
-            .await
-            .unwrap()
-            .map(|doc| doc.unwrap())
-            .collect()
-            .await
-    }
+    // pub async fn get_all_bans(&self) -> Vec<Ban> {
+    //     self.bans
+    //         .find(None, None)
+    //         .await
+    //         .unwrap()
+    //         .map(|doc| doc.unwrap())
+    //         .collect()
+    //         .await
+    // }
 
     pub async fn find_active_ban(&self, user_id: u64) -> Option<Ban> {
         let now = chrono::Utc::now();
