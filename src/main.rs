@@ -52,7 +52,7 @@ async fn main() {
             "/v1/ban/:user_id",
             get(ban_api::v1::get_ban).delete(ban_api::v1::delete_ban),
         )
-        .route("/v1/resident", put(resident_api::v1::put_resident))
+        .route("/v1/resident/:user_id", put(resident_api::v1::put_resident))
         .with_state(state)
         .layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
