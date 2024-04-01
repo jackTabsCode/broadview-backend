@@ -1,6 +1,6 @@
 use api::{ban_api, resident_api};
 use axum::{
-    routing::{get, put},
+    routing::{delete, get, put},
     Router,
 };
 use axum_server::tls_rustls::RustlsConfig;
@@ -47,10 +47,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello world!" }))
-        .route(
-            "/v1/ban/:user_id",
-            get(ban_api::v1::get_ban).delete(ban_api::v1::delete_ban),
-        )
+        .route("/v1/ban/:user_id", get(ban_api::v1::get_ban))
+        .route("/v1/ban/:user_id", delete(ban_api::v1::delete_ban))
         .route("/v1/ban", put(ban_api::v1::put_ban))
         .route("/v1/resident", put(resident_api::v1::put_resident))
         .with_state(state)
