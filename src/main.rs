@@ -1,62 +1,77 @@
-use std::env;
+use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
 
-use api::{ban_api, resident_api};
+use axum::{
+    http::Method,
+    routing::{get, put},
+    serve, Router,
+};
+use axum_server::tls_rustls::RustlsConfig;
 use database::Database;
 use dotenv::dotenv;
-use guards::api_key::ApiKey;
 use roboat::ClientBuilder;
-use rocket_governor::rocket_governor_catcher;
+use state::AppState;
+use tower_http::{cors::CorsLayer, trace};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;
+pub mod auth;
 mod database;
-mod guards;
 mod models;
+pub mod state;
 
-#[macro_use]
-extern crate rocket;
-
-#[get("/")]
-fn index(_api_key: ApiKey) -> &'static str {
-    "Hello, world!"
-}
-
-#[catch(401)]
-fn unauthorized() -> &'static str {
-    "You are not authorized to access this API."
-}
-
-#[launch]
-async fn rocket() -> _ {
+#[tokio::main]
+async fn main() {
     dotenv().ok();
 
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                "example_tracing_aka_logging=debug,tower_http=debug,axum::rejection=trace".into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    let roblox_cookie = env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
+    let api_key = env::var("BACKEND_API_KEY").expect("BACKEND_API_KEY must be set");
+
     let database = Database::new().await;
+    let roboat_client = ClientBuilder::new().roblosecurity(roblox_cookie).build();
 
-    let roblosecurity = env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
-    let roboat_client = ClientBuilder::new().roblosecurity(roblosecurity).build();
+    let state = Arc::new(AppState {
+        database,
+        roboat_client,
+        api_key: state::ApiKeyState(api_key),
+    });
 
-    rocket::build()
-        .manage(database)
-        .manage(roboat_client)
-        .mount("/", routes![index])
-        .mount(
-            "/v1",
-            routes![
-                ban_api::v1::get_ban,
-                ban_api::v1::get_all_bans,
-                ban_api::v1::put_ban,
-                ban_api::v1::delete_ban
-            ],
+    let cors =
+        CorsLayer::new().allow_methods([Method::GET, Method::POST, Method::DELETE, Method::PUT]);
+
+    let app = Router::new()
+        .route("/", get(|| async { "Hello world!" }))
+        .route(
+            "/v1/ban/:user_id",
+            get(api::ban_api::v1::get_ban).delete(api::ban_api::v1::delete_ban),
         )
-        .mount(
-            "/v2",
-            routes![
-                ban_api::v2::get_ban,
-                ban_api::v2::get_all_bans,
-                ban_api::v2::put_ban,
-                ban_api::v2::delete_ban,
-                resident_api::make_resident
-            ],
-        )
-        .register("/", catchers![unauthorized])
-        .register("/", catchers![rocket_governor_catcher])
+        .route("/v1/ban", put(api::ban_api::v1::put_ban))
+        .route("/v1/resident", put(api::resident_api::v1::put_resident))
+        .with_state(state)
+        .layer(cors)
+        .layer(trace::TraceLayer::new_for_http());
+
+    let config = RustlsConfig::from_pem_file(
+        PathBuf::from("broadview.crt"),
+        PathBuf::from("broadview.key"),
+    )
+    .await
+    .unwrap();
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+
+    axum_server::bind_rustls(addr, config)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }

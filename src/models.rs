@@ -1,7 +1,7 @@
 use bson::DateTime;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Ban {
     pub user_id: u64,
@@ -12,6 +12,7 @@ pub struct Ban {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires: Option<DateTime>,
 
+    #[serde(with = "bson::serde_helpers::bson_datetime_as_rfc3339_string")]
     pub timestamp: DateTime,
 }
 

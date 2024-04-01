@@ -1,15 +1,24 @@
 use crate::{
-    database::Database,
-    guards::api_key::ApiKey,
+    auth::ApiKey,
     models::{Ban, V1BanResult},
+    state::AppState,
 };
-use rocket::{serde::json::Json, State};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
+use std::sync::Arc;
 
-#[get("/ban/<user_id>")]
-pub async fn get_ban(_api_key: ApiKey, db: &State<Database>, user_id: &str) -> Json<V1BanResult> {
+pub async fn get_ban(
+    Path(user_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    ApiKey(): ApiKey,
+) -> Json<V1BanResult> {
     let user_id = user_id.parse::<u64>().unwrap();
 
-    match db.find_active_ban(user_id).await {
+    match state.database.find_active_ban(user_id).await {
         Some(ban) => Json(V1BanResult::Banned {
             banned: serde_bool::True,
             ban,
@@ -20,18 +29,33 @@ pub async fn get_ban(_api_key: ApiKey, db: &State<Database>, user_id: &str) -> J
     }
 }
 
-#[get("/bans")]
-pub async fn get_all_bans(db: &State<Database>) -> Json<Vec<Ban>> {
-    db.get_all_bans().await.into()
+pub async fn put_ban(
+    State(state): State<Arc<AppState>>,
+    ApiKey(): ApiKey,
+    Json(ban): Json<Ban>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    state
+        .database
+        .insert_ban(ban)
+        .await
+        .map_err(|e| (StatusCode::BAD_REQUEST, e))
 }
 
-#[put("/ban", data = "<ban>")]
-pub async fn put_ban(_api_key: ApiKey, db: &State<Database>, ban: Json<Ban>) {
-    db.insert_ban(ban.into_inner()).await.unwrap();
-}
+pub async fn delete_ban(
+    Path(user_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    ApiKey(): ApiKey,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let user_id = user_id.parse::<u64>().map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            "Failed to parse user ID".to_string(),
+        )
+    })?;
 
-#[delete("/ban/<user_id>")]
-pub async fn delete_ban(_api_key: ApiKey, db: &State<Database>, user_id: &str) {
-    let user_id = user_id.parse::<u64>().unwrap();
-    db.remove_ban(user_id).await;
+    state
+        .database
+        .remove_ban(user_id)
+        .await
+        .map_err(|e| (StatusCode::BAD_REQUEST, e))
 }
