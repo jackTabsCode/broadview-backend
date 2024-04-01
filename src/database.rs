@@ -52,9 +52,14 @@ impl Database {
         }
     }
 
-    pub async fn remove_ban(&self, user_id: u64) {
-        let filter = doc! { "userId": user_id as i64 };
-        self.bans.delete_one(filter, None).await.unwrap();
+    pub async fn remove_ban(&self, user_id: u64) -> Result<(), String> {
+        if self.find_active_ban(user_id).await.is_none() {
+            Err("User is not banned".to_string())
+        } else {
+            let filter = doc! { "userId": user_id as i64 };
+            self.bans.delete_one(filter, None).await.unwrap();
+            Ok(())
+        }
     }
 }
 

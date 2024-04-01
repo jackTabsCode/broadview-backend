@@ -1,26 +1,65 @@
-use std::env;
+use std::sync::Arc;
 
-use axum::{routing::get, serve, Router};
+use axum::{
+    http::Method,
+    routing::{get, put},
+    serve, Router,
+};
 use database::Database;
 use dotenv::dotenv;
 use roboat::ClientBuilder;
+use state::AppState;
+use tower_http::{cors::CorsLayer, trace};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+mod api;
+pub mod auth;
 mod database;
 mod models;
+pub mod state;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                "example_tracing_aka_logging=debug,tower_http=debug,axum::rejection=trace".into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    let roblox_cookie = std::env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
+
     let database = Database::new().await;
+    let roboat_client = ClientBuilder::new().roblosecurity(roblox_cookie).build();
 
-    // let roblosecurity = env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
-    // let roboat_client = ClientBuilder::new().roblosecurity(roblosecurity).build();
+    let state = Arc::new(AppState {
+        database,
+        roboat_client,
+    });
 
-    let app = Router::new().route("/", get(|| async { "Hello world!" }));
+    let cors =
+        CorsLayer::new().allow_methods([Method::GET, Method::POST, Method::DELETE, Method::PUT]);
+
+    let app = Router::new()
+        .route("/", get(|| async { "Hello world!" }))
+        .route(
+            "/v1/ban/:user_id",
+            get(api::ban_api::v1::get_ban).delete(api::ban_api::v1::delete_ban),
+        )
+        .route("/v1/ban", put(api::ban_api::v1::put_ban))
+        .route("/v1/resident", put(api::resident_api::v1::put_resident))
+        .with_state(state)
+        .layer(cors)
+        .layer(trace::TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
-    serve(listener, app).await.unwrap()
+    serve(listener, app.into_make_service()).await.unwrap()
 }
