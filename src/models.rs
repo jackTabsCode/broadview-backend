@@ -18,7 +18,7 @@ pub struct Ban {
 }
 
 impl Ban {
-    pub fn from_request(request: BanRequest, user_id: u64) -> Self {
+    pub fn from_request(request: V1BanRequest, user_id: u64) -> Self {
         Self {
             user_id,
             moderator_id: request.moderator_id,
@@ -31,7 +31,7 @@ impl Ban {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BanRequest {
+pub struct V1BanRequest {
     pub moderator_id: u64,
     pub reason: String,
     #[serde(skip_serializing_if = "Option::is_none")]

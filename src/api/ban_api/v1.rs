@@ -1,6 +1,6 @@
 use crate::{
     auth::ApiKey,
-    models::{Ban, BanRequest, V1BanResult},
+    models::{Ban, V1BanRequest, V1BanResult},
     state::AppState,
 };
 use axum::{
@@ -33,7 +33,7 @@ pub async fn put_ban(
     Path(user_id): Path<String>,
     State(state): State<Arc<AppState>>,
     ApiKey(): ApiKey,
-    Json(ban): Json<BanRequest>,
+    Json(ban): Json<V1BanRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let user_id = user_id.parse::<u64>().map_err(|_| {
         (
