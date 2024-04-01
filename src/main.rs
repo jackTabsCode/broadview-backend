@@ -1,10 +1,11 @@
-use std::{env, sync::Arc};
+use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
 
 use axum::{
     http::Method,
     routing::{get, put},
     serve, Router,
 };
+use axum_server::tls_rustls::RustlsConfig;
 use database::Database;
 use dotenv::dotenv;
 use roboat::ClientBuilder;
@@ -60,8 +61,17 @@ async fn main() {
         .layer(cors)
         .layer(trace::TraceLayer::new_for_http());
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let config = RustlsConfig::from_pem_file(
+        PathBuf::from("broadview.crt"),
+        PathBuf::from("broadview.key"),
+    )
+    .await
+    .unwrap();
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+
+    axum_server::bind_rustls(addr, config)
+        .serve(app.into_make_service())
         .await
         .unwrap();
-    serve(listener, app.into_make_service()).await.unwrap()
 }
