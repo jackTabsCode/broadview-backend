@@ -47,10 +47,11 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello world!" }))
-        .route("/v1/ban", put(ban_api::v1::put_ban))
         .route(
             "/v1/ban/:user_id",
-            get(ban_api::v1::get_ban).delete(ban_api::v1::delete_ban),
+            get(ban_api::v1::get_ban)
+                .delete(ban_api::v1::delete_ban)
+                .put(ban_api::v1::put_ban),
         )
         .route("/v1/resident/:user_id", put(resident_api::v1::put_resident))
         .with_state(state)
