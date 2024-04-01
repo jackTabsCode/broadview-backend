@@ -55,7 +55,7 @@ async fn main() {
         .route("/v1/ban", put(api::ban_api::v1::put_ban))
         .route("/v1/resident", put(api::resident_api::v1::put_resident))
         .with_state(state)
-        .layer(CorsLayer::permissive())
+        //.layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
 
     let config = RustlsConfig::from_pem_file(
