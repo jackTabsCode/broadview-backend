@@ -1,6 +1,6 @@
 use api::{ban_api, resident_api};
 use axum::{
-    routing::{delete, get, put},
+    routing::{get, put},
     Router,
 };
 use axum_server::tls_rustls::RustlsConfig;
