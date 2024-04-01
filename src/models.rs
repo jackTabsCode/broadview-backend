@@ -34,6 +34,7 @@ pub struct V1BanRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct V1Ban {
     pub user_id: u64,
     pub moderator_id: u64,
