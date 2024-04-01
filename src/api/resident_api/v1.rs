@@ -14,7 +14,13 @@ pub async fn put_resident(
     State(state): State<Arc<AppState>>,
     ApiKey(): ApiKey,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let user_id = user_id.parse::<u64>().unwrap();
+    let user_id = user_id.parse::<u64>().map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            "Failed to parse user ID".to_string(),
+        )
+    })?;
+
     let attempt = state
         .roboat_client
         .set_group_member_role(user_id, GROUP_ID, ROLE_ID)
