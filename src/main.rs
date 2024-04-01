@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{env, sync::Arc};
 
 use axum::{
     http::Method,
@@ -33,7 +33,8 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let roblox_cookie = std::env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
+    let roblox_cookie = env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
+    let api_key = env::var("BACKEND_API_KEY").expect("BACKEND_API_KEY must be set");
 
     let database = Database::new().await;
     let roboat_client = ClientBuilder::new().roblosecurity(roblox_cookie).build();
@@ -41,6 +42,7 @@ async fn main() {
     let state = Arc::new(AppState {
         database,
         roboat_client,
+        api_key: state::ApiKeyState(api_key),
     });
 
     let cors =
