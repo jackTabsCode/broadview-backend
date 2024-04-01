@@ -1,8 +1,9 @@
-use std::env;
+use std::sync::Arc;
 
+use crate::state::{ApiKeyState, AppState};
 use axum::{
     async_trait,
-    extract::FromRequestParts,
+    extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
 };
 
@@ -11,13 +12,12 @@ pub struct ApiKey();
 #[async_trait]
 impl<S> FromRequestParts<S> for ApiKey
 where
+    ApiKeyState: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = (StatusCode, &'static str);
 
-    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
-        let actual_api_key = env::var("BACKEND-API-KEY").expect("BACKEND-API-KEY must be set");
-
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let headers = parts.headers.clone();
         let api_key = match headers.get("API-Key") {
             Some(auth) => auth,
@@ -28,10 +28,18 @@ where
             .to_str()
             .expect("authorization header should be valid ASCII");
 
-        if api_key != actual_api_key {
+        let state = ApiKeyState::from_ref(state);
+
+        if api_key != state.0 {
             return Err((StatusCode::UNAUTHORIZED, "Invalid API key"));
         }
 
         Ok(ApiKey())
+    }
+}
+
+impl FromRef<Arc<AppState>> for ApiKeyState {
+    fn from_ref(state: &Arc<AppState>) -> ApiKeyState {
+        state.api_key.clone()
     }
 }
