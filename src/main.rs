@@ -1,15 +1,14 @@
-use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
-
+use api::{ban_api, resident_api};
 use axum::{
-    http::Method,
     routing::{get, put},
-    serve, Router,
+    Router,
 };
 use axum_server::tls_rustls::RustlsConfig;
 use database::Database;
 use dotenv::dotenv;
 use roboat::ClientBuilder;
 use state::AppState;
+use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
 use tower_http::{cors::CorsLayer, trace};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -50,12 +49,12 @@ async fn main() {
         .route("/", get(|| async { "Hello world!" }))
         .route(
             "/v1/ban/:user_id",
-            get(api::ban_api::v1::get_ban).delete(api::ban_api::v1::delete_ban),
+            get(ban_api::v1::get_ban).delete(ban_api::v1::delete_ban),
         )
-        .route("/v1/ban", put(api::ban_api::v1::put_ban))
-        .route("/v1/resident", put(api::resident_api::v1::put_resident))
+        .route("/v1/ban", put(ban_api::v1::put_ban))
+        .route("/v1/resident", put(resident_api::v1::put_resident))
         .with_state(state)
-        //.layer(CorsLayer::permissive())
+        .layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
 
     let config = RustlsConfig::from_pem_file(
