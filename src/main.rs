@@ -46,9 +46,6 @@ async fn main() {
         api_key: state::ApiKeyState(api_key),
     });
 
-    let cors =
-        CorsLayer::new().allow_methods([Method::GET, Method::POST, Method::DELETE, Method::PUT]);
-
     let app = Router::new()
         .route("/", get(|| async { "Hello world!" }))
         .route(
@@ -58,7 +55,7 @@ async fn main() {
         .route("/v1/ban", put(api::ban_api::v1::put_ban))
         .route("/v1/resident", put(api::resident_api::v1::put_resident))
         .with_state(state)
-        .layer(cors)
+        .layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
 
     let config = RustlsConfig::from_pem_file(
