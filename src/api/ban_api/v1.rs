@@ -1,6 +1,6 @@
 use crate::{
     auth::ApiKey,
-    models::{Ban, V1BanRequest, V1BanResult},
+    models::{BanDocument, V1BanRequest, V1BanResponse},
     state::AppState,
 };
 use axum::{
@@ -15,15 +15,15 @@ pub async fn get_ban(
     Path(user_id): Path<String>,
     State(state): State<Arc<AppState>>,
     ApiKey(): ApiKey,
-) -> Json<V1BanResult> {
+) -> Json<V1BanResponse> {
     let user_id = user_id.parse::<u64>().unwrap();
 
     match state.database.find_active_ban(user_id).await {
-        Some(ban) => Json(V1BanResult::Banned {
+        Some(ban) => Json(V1BanResponse::Banned {
             banned: serde_bool::True,
-            ban,
+            ban: ban.into(),
         }),
-        None => Json(V1BanResult::NotBanned {
+        None => Json(V1BanResponse::NotBanned {
             banned: serde_bool::False,
         }),
     }
@@ -44,7 +44,7 @@ pub async fn put_ban(
 
     state
         .database
-        .insert_ban(Ban::from_request(ban, user_id))
+        .insert_ban(BanDocument::from_request(ban, user_id))
         .await
         .map_err(|e| (StatusCode::BAD_REQUEST, e))
 }

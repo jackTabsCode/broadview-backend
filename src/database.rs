@@ -1,9 +1,9 @@
 use mongodb::{bson::doc, options::ClientOptions, Collection};
 
-use crate::models::Ban;
+use crate::models::BanDocument;
 
 pub struct Database {
-    bans: Collection<Ban>,
+    bans: Collection<BanDocument>,
 }
 
 impl Database {
@@ -16,12 +16,12 @@ impl Database {
         let client = mongodb::Client::with_options(client_options).unwrap();
 
         let db = client.database("broadview");
-        let col: Collection<Ban> = db.collection("bans");
+        let col: Collection<BanDocument> = db.collection("bans");
 
         Self { bans: col }
     }
 
-    pub async fn find_active_ban(&self, user_id: u64) -> Option<Ban> {
+    pub async fn find_active_ban(&self, user_id: u64) -> Option<BanDocument> {
         let now = chrono::Utc::now();
         let filter = doc! {
             "userId": user_id as i64,
@@ -35,7 +35,7 @@ impl Database {
         self.bans.find_one(Some(filter), None).await.unwrap()
     }
 
-    pub async fn insert_ban(&self, ban: Ban) -> Result<(), String> {
+    pub async fn insert_ban(&self, ban: BanDocument) -> Result<(), String> {
         if self.find_active_ban(ban.user_id).await.is_some() {
             Err("User is already banned".to_string())
         } else {

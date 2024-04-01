@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Ban {
+pub struct BanDocument {
     pub user_id: u64,
     pub moderator_id: u64,
 
@@ -14,7 +14,7 @@ pub struct Ban {
     pub timestamp: DateTime,
 }
 
-impl Ban {
+impl BanDocument {
     pub fn from_request(request: V1BanRequest, user_id: u64) -> Self {
         Self {
             user_id,
@@ -34,9 +34,18 @@ pub struct V1BanRequest {
     pub expires: Option<chrono::DateTime<Utc>>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct V1Ban {
+    pub user_id: u64,
+    pub moderator_id: u64,
+    pub reason: String,
+    pub expires: Option<String>,
+    pub timestamp: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
-pub enum V1BanResult {
+pub enum V1BanResponse {
     NotBanned {
         banned: serde_bool::False,
     },
@@ -44,8 +53,22 @@ pub enum V1BanResult {
         banned: serde_bool::True,
 
         #[serde(flatten)]
-        ban: Ban,
+        ban: V1Ban,
     },
+}
+
+impl From<BanDocument> for V1Ban {
+    fn from(document: BanDocument) -> Self {
+        Self {
+            user_id: document.user_id,
+            moderator_id: document.moderator_id,
+            reason: document.reason,
+            expires: document
+                .expires
+                .map(|date| date.try_to_rfc3339_string().unwrap()),
+            timestamp: document.timestamp.try_to_rfc3339_string().unwrap(),
+        }
+    }
 }
 
 mod opt_bson_datetime_as_rfc3339_string {
