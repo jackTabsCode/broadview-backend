@@ -20,15 +20,6 @@ impl Database {
 
         Self { bans: col }
     }
-    // pub async fn get_all_bans(&self) -> Vec<Ban> {
-    //     self.bans
-    //         .find(None, None)
-    //         .await
-    //         .unwrap()
-    //         .map(|doc| doc.unwrap())
-    //         .collect()
-    //         .await
-    // }
 
     pub async fn find_active_ban(&self, user_id: u64) -> Option<Ban> {
         let now = chrono::Utc::now();
@@ -36,6 +27,7 @@ impl Database {
             "userId": user_id as i64,
             "$or": [
                 { "expires": { "$gt": bson::DateTime::from_chrono(now)} },
+                { "expires": { "$type": 10 } },
                 { "expires": { "$exists": false } }
             ]
         };

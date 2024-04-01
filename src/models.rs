@@ -1,4 +1,5 @@
 use bson::DateTime;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -9,11 +10,7 @@ pub struct Ban {
 
     pub reason: String,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "opt_bson_datetime_as_rfc3339_string")]
     pub expires: Option<DateTime>,
-
-    #[serde(with = "bson::serde_helpers::bson_datetime_as_rfc3339_string")]
     pub timestamp: DateTime,
 }
 
@@ -23,7 +20,7 @@ impl Ban {
             user_id,
             moderator_id: request.moderator_id,
             reason: request.reason,
-            expires: request.expires,
+            expires: request.expires.map(|date| DateTime::from_chrono(date)),
             timestamp: DateTime::now(),
         }
     }
@@ -34,9 +31,7 @@ impl Ban {
 pub struct V1BanRequest {
     pub moderator_id: u64,
     pub reason: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "opt_bson_datetime_as_rfc3339_string")]
-    pub expires: Option<DateTime>,
+    pub expires: Option<chrono::DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize)]
