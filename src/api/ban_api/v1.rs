@@ -46,7 +46,9 @@ pub async fn put_ban(
         .database
         .insert_ban(BanDocument::from_request(ban, user_id))
         .await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e))
+        .map_err(|e| (StatusCode::BAD_REQUEST, e))?;
+
+    Ok("User banned")
 }
 
 pub async fn delete_ban(
@@ -65,5 +67,7 @@ pub async fn delete_ban(
         .database
         .remove_ban(user_id)
         .await
-        .map_err(|e| (StatusCode::BAD_REQUEST, e))
+        .map_err(|e| (StatusCode::BAD_REQUEST, e))?;
+
+    Ok("User unbanned")
 }
