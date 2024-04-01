@@ -17,6 +17,28 @@ pub struct Ban {
     pub timestamp: DateTime,
 }
 
+impl Ban {
+    pub fn from_request(request: BanRequest, user_id: u64) -> Self {
+        Self {
+            user_id,
+            moderator_id: request.moderator_id,
+            reason: request.reason,
+            expires: request.expires,
+            timestamp: DateTime::now(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BanRequest {
+    pub moderator_id: u64,
+    pub reason: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(with = "opt_bson_datetime_as_rfc3339_string")]
+    pub expires: Option<DateTime>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub enum V1BanResult {

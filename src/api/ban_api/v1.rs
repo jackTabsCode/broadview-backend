@@ -1,6 +1,6 @@
 use crate::{
     auth::ApiKey,
-    models::{Ban, V1BanResult},
+    models::{Ban, BanRequest, V1BanResult},
     state::AppState,
 };
 use axum::{
@@ -30,13 +30,21 @@ pub async fn get_ban(
 }
 
 pub async fn put_ban(
+    Path(user_id): Path<String>,
     State(state): State<Arc<AppState>>,
     ApiKey(): ApiKey,
-    Json(ban): Json<Ban>,
+    Json(ban): Json<BanRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let user_id = user_id.parse::<u64>().map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            "Failed to parse user ID".to_string(),
+        )
+    })?;
+
     state
         .database
-        .insert_ban(ban)
+        .insert_ban(Ban::from_request(ban, user_id))
         .await
         .map_err(|e| (StatusCode::BAD_REQUEST, e))
 }
