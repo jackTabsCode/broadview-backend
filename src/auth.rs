@@ -1,13 +1,12 @@
-use std::sync::Arc;
-
 use crate::state::{ApiKeyState, AppState};
 use axum::{
     async_trait,
     extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
 };
+use std::sync::Arc;
 
-pub struct ApiKey();
+pub struct ApiKey;
 
 #[async_trait]
 impl<S> FromRequestParts<S> for ApiKey
@@ -34,7 +33,7 @@ where
             return Err((StatusCode::UNAUTHORIZED, "Invalid API key"));
         }
 
-        Ok(ApiKey())
+        Ok(ApiKey)
     }
 }
 

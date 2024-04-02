@@ -3,7 +3,6 @@ use axum::{
     routing::{get, put},
     Router,
 };
-
 use database::Database;
 use dotenv::dotenv;
 use roboat::ClientBuilder;
@@ -64,4 +63,6 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+
+    tracing::info!("Listening on {}", addr);
 }

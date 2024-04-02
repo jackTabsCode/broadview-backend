@@ -12,7 +12,7 @@ const ROLE_ID: u64 = 20676927;
 pub async fn put_resident(
     Path(user_id): Path<String>,
     State(state): State<Arc<AppState>>,
-    ApiKey(): ApiKey,
+    ApiKey: ApiKey,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let user_id = user_id.parse::<u64>().map_err(|_| {
         (
