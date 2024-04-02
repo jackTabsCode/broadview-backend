@@ -37,15 +37,15 @@ jobs:
                   name: release
                   path: release.zip
 
-            # - name: Set up ssh-agent
-            #   uses: webfactory/ssh-agent@v0.5.4
-            #   with:
-            #       ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+            - name: Set up ssh-agent
+              uses: webfactory/ssh-agent@v0.5.4
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-            # - name: Add server to known_hosts
-            #   run: echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
-            #   env:
-            #       KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+            - name: Add server to known_hosts
+              run: echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
+              env:
+                  KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
 
-            # - name: Deploy Release
-            #   run: ./deploy-prod.sh
+            - name: Deploy Release
+              run: ./deploy-prod.sh

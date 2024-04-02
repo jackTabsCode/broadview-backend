@@ -1,7 +1,0 @@
-[default]
-port = 443
-log_level = "normal"
-
-[default.tls]
-key = "broadview.key"
-certs = "broadview.crt"
