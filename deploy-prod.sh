@@ -21,5 +21,5 @@ ssh $REMOTE /bin/bash << EOF
 	fi
 	cp $RELEASE_DIR/$BIN ./$BIN
 
-	systemctl restart broadview-backend
+	sudo systemctl restart broadview-backend
 EOF
