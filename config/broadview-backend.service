@@ -1,0 +1,14 @@
+[Unit]
+Description=Broadview Backend
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=8
+User=ubuntu
+ExecStart=/home/ubuntu/broadview-backend/broadview-backend >out.log 2>err.log
+
+[Install]
+WantedBy=multi-user.target

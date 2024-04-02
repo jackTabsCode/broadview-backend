@@ -10,17 +10,16 @@ ssh $REMOTE "mkdir -p $RELEASE_DIR"
 scp release.zip $REMOTE:$RELEASE_DIR/release.zip
 
 ssh $REMOTE /bin/bash << EOF
-set -x
-cd $RELEASE_DIR
-echo "Hello world" > hello.txt
-# unzip -u release.zip
-# rm release.zip
+	set -x
+	cd $RELEASE_DIR
+	unzip -u release.zip
+	rm release.zip
 
-# cd ~/broadview-backend
-# if test -f "$BIN"; then
-# 	mv $BIN $BIN-old
-# fi
-# cp $RELEASE_DIR/$BIN ./$BIN
+	cd ~/broadview-backend
+	if test -f "$BIN"; then
+		mv $BIN $BIN-old
+	fi
+	cp $RELEASE_DIR/$BIN ./$BIN
 
-# systemctl restart broadview-backend
+	systemctl restart broadview-backend
 EOF
