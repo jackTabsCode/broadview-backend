@@ -58,16 +58,9 @@ async fn main() {
         .layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
 
-    let config = RustlsConfig::from_pem_file(
-        PathBuf::from("broadview.crt"),
-        PathBuf::from("broadview.key"),
-    )
-    .await
-    .unwrap();
-
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
-    axum_server::bind_rustls(addr, config)
+    axum_server::bind(addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
