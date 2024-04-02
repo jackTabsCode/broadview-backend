@@ -3,12 +3,12 @@ use axum::{
     routing::{get, put},
     Router,
 };
-use axum_server::tls_rustls::RustlsConfig;
+
 use database::Database;
 use dotenv::dotenv;
 use roboat::ClientBuilder;
 use state::AppState;
-use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
+use std::{env, net::SocketAddr, sync::Arc};
 use tower_http::{cors::CorsLayer, trace};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
