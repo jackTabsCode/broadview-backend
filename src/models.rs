@@ -1,26 +1,25 @@
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BanDocument {
+pub struct Ban {
     pub user_id: u64,
     pub moderator_id: u64,
 
     pub reason: String,
 
-    pub expires: Option<bson::DateTime>,
-    pub timestamp: bson::DateTime,
+    pub expires: Option<DateTime<Utc>>,
+    pub timestamp: DateTime<Utc>,
 }
 
-impl BanDocument {
+impl Ban {
     pub fn from_request(request: V1BanRequest, user_id: u64) -> Self {
         Self {
             user_id,
             moderator_id: request.moderator_id,
             reason: request.reason,
-            expires: request.expires.map(bson::DateTime::from_chrono),
-            timestamp: bson::DateTime::now(),
+            expires: request.expires,
+            timestamp: Utc::now(),
         }
     }
 }
@@ -30,7 +29,7 @@ impl BanDocument {
 pub struct V1BanRequest {
     pub moderator_id: u64,
     pub reason: String,
-    pub expires: Option<chrono::DateTime<Utc>>,
+    pub expires: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,16 +56,14 @@ pub enum V1BanResponse {
     },
 }
 
-impl From<BanDocument> for V1Ban {
-    fn from(document: BanDocument) -> Self {
+impl From<Ban> for V1Ban {
+    fn from(document: Ban) -> Self {
         Self {
             user_id: document.user_id,
             moderator_id: document.moderator_id,
             reason: document.reason,
-            expires: document
-                .expires
-                .map(|date| date.try_to_rfc3339_string().unwrap()),
-            timestamp: document.timestamp.try_to_rfc3339_string().unwrap(),
+            expires: document.expires.map(|expires| expires.to_rfc3339()),
+            timestamp: document.timestamp.to_rfc3339(),
         }
     }
 }

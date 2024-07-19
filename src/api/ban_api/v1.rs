@@ -1,6 +1,6 @@
 use crate::{
     auth::ApiKey,
-    models::{BanDocument, V1BanRequest, V1BanResponse},
+    models::{Ban, V1BanRequest, V1BanResponse},
     state::AppState,
 };
 use axum::{
@@ -49,7 +49,7 @@ pub async fn put_ban(
 
     state
         .database
-        .insert_ban(BanDocument::from_request(ban, user_id))
+        .insert_ban(Ban::from_request(ban, user_id))
         .await
         .map_err(|e| (StatusCode::BAD_REQUEST, e))?;
 

@@ -2,3 +2,5 @@
 .env
 broadview.crt
 broadview.key
+broadview.db
+migration.sql
