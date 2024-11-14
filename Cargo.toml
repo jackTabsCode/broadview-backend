@@ -9,9 +9,9 @@ edition = "2021"
 tokio = { version = "1.36.0", features = ["full"] }
 axum = { version = "0.7.5", features = ["tracing"] }
 bson = { version = "2.9.0", features = [
-    "serde_with",
-    "chrono-0_4",
-    "serde_with-3",
+	"serde_with",
+	"chrono-0_4",
+	"serde_with-3",
 ] }
 chrono = { version = "0.4.35", features = ["serde"] }
 dotenv = "0.15.0"
@@ -23,3 +23,8 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tower-http = { version = "0.5.2", features = ["trace", "cors"] }
 tracing = "0.1.40"
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
+rbx_cookie = { version = "0.1.4", default-features = false }
+reqwest = { version = "0.12.9", default-features = false, features = [
+	"rustls-tls",
+	"json",
+] }

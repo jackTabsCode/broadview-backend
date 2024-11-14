@@ -1,4 +1,4 @@
-use api::{ban_api, resident_api};
+use api::{ban_api, resident_api, votes_api};
 use axum::{
     routing::{get, put},
     Router,
@@ -32,7 +32,7 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let roblox_cookie = env::var("ROBLOX_COOKIE").expect("ROBLOX_COOKIE must be set");
+    let roblox_cookie = get_roblox_cookie().expect("failed to get Roblox cookie");
     let api_key = env::var("BACKEND_API_KEY").expect("BACKEND_API_KEY must be set");
 
     let database = Database::new().await;
@@ -53,6 +53,7 @@ async fn main() {
                 .put(ban_api::v1::put_ban),
         )
         .route("/v1/resident/:user_id", put(resident_api::v1::put_resident))
+        .route("/votes", get(votes_api::get_votes))
         .with_state(state)
         .layer(CorsLayer::permissive())
         .layer(trace::TraceLayer::new_for_http());
@@ -65,4 +66,10 @@ async fn main() {
         .unwrap();
 
     tracing::info!("Listening on {}", addr);
+}
+
+fn get_roblox_cookie() -> Result<String, String> {
+    rbx_cookie::get().ok_or_else(|| {
+        env::var("ROBLOX_COOKIE").unwrap_or_else(|_| "ROBLOX_COOKIE must be set".to_string())
+    })
 }
