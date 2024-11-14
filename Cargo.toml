@@ -6,23 +6,23 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.36.0", features = ["full"] }
-axum = { version = "0.7.5", features = ["tracing"] }
-bson = { version = "2.9.0", features = [
+tokio = { version = "1.41.1", features = ["full"] }
+axum = { version = "0.7.7", features = ["tracing"] }
+bson = { version = "2.13.0", features = [
 	"serde_with",
 	"chrono-0_4",
 	"serde_with-3",
 ] }
-chrono = { version = "0.4.35", features = ["serde"] }
+chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = "0.15.0"
 mongodb = { version = "2.8.2", features = ["bson-serde_with"] }
-roboat = "0.34.2"
-serde = { version = "1.0.197", features = ["derive"] }
+roboat = "0.35.0"
+serde = { version = "1.0.215", features = ["derive"] }
 serde-bool = "0.1.3"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-tower-http = { version = "0.5.2", features = ["trace", "cors"] }
+tower-http = { version = "0.6.1", features = ["trace", "cors"] }
 tracing = "0.1.40"
-axum-server = { version = "0.6.0", features = ["tls-rustls"] }
+axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 rbx_cookie = { version = "0.1.4", default-features = false }
 reqwest = { version = "0.12.9", default-features = false, features = [
 	"rustls-tls",
