@@ -69,7 +69,9 @@ async fn main() {
 }
 
 fn get_roblox_cookie() -> Result<String, String> {
-    rbx_cookie::get().ok_or_else(|| {
-        env::var("ROBLOX_COOKIE").unwrap_or_else(|_| "ROBLOX_COOKIE must be set".to_string())
-    })
+    if let Some(cookie) = rbx_cookie::get() {
+        Ok(cookie)
+    } else {
+        env::var("ROBLOX_COOKIE").map_err(|_| "ROBLOX_COOKIE must be set".to_string())
+    }
 }
